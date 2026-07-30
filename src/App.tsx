@@ -83,6 +83,7 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedAnomalyType, setSelectedAnomalyType] = useState<'dates' | 'value' | 'zombie' | 'nextstep' | null>(null);
+  const [selectedQueue, setSelectedQueue] = useState<'escalation' | 'development' | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterHealth, setFilterHealth] = useState<string>('all');
@@ -145,6 +146,7 @@ export default function App() {
       summary,
       topOwner,
       topOwnerShare,
+      totalOpenTasks,
       projectsWithoutDates,
       projectsWithoutValue,
       projectsWithoutNextStep,
@@ -290,6 +292,102 @@ export default function App() {
                 </div>
               </div>
 
+              {/* La jugada operativa: dos colas + cuello de botella */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button
+                    onClick={() => setSelectedQueue(q => q === 'escalation' ? null : 'escalation')}
+                    className={cn(
+                      "card p-5 border-blue-100 flex flex-col gap-1 text-left transition-all hover:border-blue-300",
+                      selectedQueue === 'escalation' && "ring-2 ring-blue-200"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 text-[10px] uppercase font-black tracking-widest text-blue-700">A escalar <InfoTip text="Cuenta los proyectos BLOQUEADOS cuyo bloqueo es externo (cliente, accesos, credenciales). No se resuelven programando: hay que gestionarlos." /></span>
+                      <ArrowUpRight className="w-4 h-4 text-blue-700" />
+                    </div>
+                    <span className="mono text-3xl font-bold text-blue-700">{stats.summary.escalationQueue.length}</span>
+                    <span className="text-xs text-muted">Bloqueo externo → acción comercial, no desarrollo</span>
+                    <span className="text-[11px] font-bold text-blue-700 mt-1">{selectedQueue === 'escalation' ? '▲ Ocultar proyectos' : '▼ Ver proyectos'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedQueue(q => q === 'development' ? null : 'development')}
+                    className={cn(
+                      "card p-5 border-purple-100 flex flex-col gap-1 text-left transition-all hover:border-purple-300",
+                      selectedQueue === 'development' && "ring-2 ring-purple-200"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 text-[10px] uppercase font-black tracking-widest text-purple-700">A desarrollar <InfoTip text="Cuenta los proyectos BLOQUEADOS cuyo bloqueo es interno: un problema técnico que el equipo sí puede resolver." /></span>
+                      <Settings2 className="w-4 h-4 text-purple-700" />
+                    </div>
+                    <span className="mono text-3xl font-bold text-purple-700">{stats.summary.developmentQueue.length}</span>
+                    <span className="text-xs text-muted">Bloqueo interno → trabajo del equipo</span>
+                    <span className="text-[11px] font-bold text-purple-700 mt-1">{selectedQueue === 'development' ? '▲ Ocultar proyectos' : '▼ Ver proyectos'}</span>
+                  </button>
+
+                  <div
+                    onClick={() => setActiveTab('team')}
+                    className="card p-5 border-critical/20 bg-critical/[0.03] flex flex-col gap-1 cursor-pointer hover:border-critical/40 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 text-[10px] uppercase font-black tracking-widest text-critical">Cuello de botella <InfoTip text="La persona con más tareas abiertas del equipo. El % son sus tareas sobre el total del equipo. La operación no avanza más rápido que ella. Clic para ir a Equipo." /></span>
+                      <Users className="w-4 h-4 text-critical" />
+                    </div>
+                    <span className="text-xl font-bold text-critical leading-tight">{stats.topOwner.alias}</span>
+                    <span className="text-xs text-muted">{stats.topOwner.open} de {stats.totalOpenTasks} tareas del equipo ({stats.topOwnerShare}%) → reasignar</span>
+                  </div>
+                </div>
+
+                {/* Detalle: qué proyectos hay en la cola seleccionada */}
+                <AnimatePresence>
+                  {selectedQueue && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className={cn(
+                        "card p-5 space-y-3",
+                        selectedQueue === 'escalation' ? "border-blue-200 bg-blue-50/30" : "border-purple-200 bg-purple-50/30"
+                      )}>
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-extrabold text-sm">
+                            {selectedQueue === 'escalation' ? 'Proyectos a escalar — bloqueo externo' : 'Proyectos a desarrollar — bloqueo interno'}
+                          </h4>
+                          <button onClick={() => setSelectedQueue(null)} className="text-xs font-bold uppercase tracking-widest text-muted hover:text-ink">Cerrar</button>
+                        </div>
+                        <p className="text-xs text-muted">
+                          {selectedQueue === 'escalation'
+                            ? 'Detenidos esperando a un tercero (cliente, accesos, credenciales). La acción es escalar/gestionar, no programar.'
+                            : 'Detenidos por un problema técnico que el equipo puede resolver.'}
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {(selectedQueue === 'escalation' ? stats.summary.escalationQueue : stats.summary.developmentQueue).map(r => (
+                            <div
+                              key={r.project.project_code}
+                              onClick={() => openEdit(r.project)}
+                              className="bg-surface rounded-lg p-3 border border-border hover:border-forest/40 cursor-pointer flex items-center justify-between gap-2"
+                            >
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="mono text-[10px] font-bold bg-bg px-1.5 py-0.5 rounded border border-border">{r.project.project_code}</span>
+                                  <span className="font-bold text-sm truncate">{r.project.client_alias}</span>
+                                </div>
+                                <p className="text-[11px] text-muted mt-0.5 truncate">{r.project.owner_alias} · {r.project.project_name}</p>
+                              </div>
+                              <ChevronRight className="w-4 h-4 text-muted flex-none" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               {/* Necesita atención hoy — el foco operativo (motor de priorización) */}
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -338,37 +436,6 @@ export default function App() {
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-
-              {/* La jugada operativa: dos colas + cuello de botella */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="card p-5 border-blue-100 flex flex-col gap-1">
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1 text-[10px] uppercase font-black tracking-widest text-blue-700">A escalar <InfoTip text="Proyectos bloqueados por un tercero (cliente, accesos, credenciales). No se resuelven programando: hay que gestionarlos, no desarrollarlos." /></span>
-                    <ArrowUpRight className="w-4 h-4 text-blue-700" />
-                  </div>
-                  <span className="mono text-3xl font-bold text-blue-700">{stats.summary.escalationQueue.length}</span>
-                  <span className="text-xs text-muted">Bloqueo externo → acción comercial, no desarrollo</span>
-                </div>
-                <div className="card p-5 border-purple-100 flex flex-col gap-1">
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1 text-[10px] uppercase font-black tracking-widest text-purple-700">A desarrollar <InfoTip text="Proyectos bloqueados por un problema técnico interno que el equipo sí puede resolver." /></span>
-                    <Settings2 className="w-4 h-4 text-purple-700" />
-                  </div>
-                  <span className="mono text-3xl font-bold text-purple-700">{stats.summary.developmentQueue.length}</span>
-                  <span className="text-xs text-muted">Bloqueo interno → trabajo del equipo</span>
-                </div>
-                <div
-                  onClick={() => setActiveTab('team')}
-                  className="card p-5 border-critical/20 bg-critical/[0.03] flex flex-col gap-1 cursor-pointer hover:border-critical/40 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1 text-[10px] uppercase font-black tracking-widest text-critical">Cuello de botella <InfoTip text="La persona más recargada de trabajo. La operación no avanza más rápido que ella; conviene reasignar parte de su carga. Haz clic para ir a Equipo." /></span>
-                    <Users className="w-4 h-4 text-critical" />
-                  </div>
-                  <span className="text-xl font-bold text-critical leading-tight">{stats.topOwner.alias}</span>
-                  <span className="text-xs text-muted">{stats.topOwner.open} tareas · {stats.topOwnerShare}% de la carga → reasignar</span>
                 </div>
               </div>
 
