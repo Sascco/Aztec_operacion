@@ -36,14 +36,21 @@ VITE_GEMINI_API_KEY=tu_api_key_de_google_ai_studio
 Con la clave, el briefing y las sugerencias muestran *"Fuente: IA (Gemini)"*;
 sin ella, *"Fuente: Fallback determinista"*.
 
+### Despliegue (GitHub Pages)
+
+El repo trae un workflow de GitHub Actions (`.github/workflows/deploy.yml`) que
+construye y publica en GitHub Pages en cada push a `main`. El build se hace **sin la
+API key** a propósito (en un sitio estático quedaría expuesta), así que el demo público
+corre en modo *fallback determinista* — 100% funcional.
+
 ---
 
 ##  Qué hace
 
 | Vista | Para qué sirve |
 |-------|----------------|
-| **Resumen** | Centro de operaciones: qué atender hoy, colas de escalar/desarrollar, cuello de botella y calidad de datos. |
-| **Priorización** | Ranking completo por valor en riesgo + briefing operativo generado con IA. |
+| **Resumen** | Centro de operaciones: qué atender hoy, colas de escalar/desarrollar (clickables para ver los proyectos), cuello de botella y calidad de datos. |
+| **Priorización** | Ranking por valor en riesgo, briefing con IA, y un banner que **explica en lenguaje natural cómo se calculó el score** del proyecto más crítico. |
 | **Equipo** | Carga por persona; identifica al cuello de botella. |
 | **Portafolio** | Crear y editar proyectos (con sugerencia de "siguiente paso" por IA). |
 
@@ -67,7 +74,7 @@ Valor en riesgo = Valor × Riesgo × Urgencia
 
 | Factor | Fuente | Valores |
 |--------|--------|---------|
-| Valor | `business_value` normalizado a USD (COP÷4000) | número real |
+| Valor | `business_value` normalizado a USD (COP÷4000); si falta, se asume la **mediana del portafolio** | número real |
 | Riesgo | salud del proyecto | Bloqueado 1.0 · En riesgo 0.6 · Sano 0.15 |
 | Urgencia | días a la fecha límite | Vencido 1.0 · ≤30d 0.7 · lejano 0.3 · sin fecha 0.7 |
 
@@ -107,12 +114,13 @@ portafolio es igual al de la persona más cargada.
 
 ```
 src/
-├── engine.ts       Motor de priorización (puro, desacoplado de la UI, testeable)
+├── engine.ts       Motor de priorización + explicación del score (puro, testeable)
 ├── ai.ts           Capa de IA (Gemini) + fallbacks deterministas
 ├── types.ts        Modelo de datos (Project, Task, TeamMember)
 ├── data.ts         Dataset semilla (22 proyectos, 82 tareas, equipo)
 ├── App.tsx         UI: vistas Resumen / Priorización / Equipo / Portafolio
 ├── ProjectModal.tsx  Crear / editar proyectos
+├── InfoTip.tsx     Tooltip reutilizable (iconos ⓘ de ayuda)
 └── index.css       Estilos (Tailwind CSS v4)
 ```
 

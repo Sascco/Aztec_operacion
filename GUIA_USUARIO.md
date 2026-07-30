@@ -5,6 +5,9 @@ elemento de cada pantalla. No necesitas conocimientos técnicos.
 
 > 💡 **En una frase:** el dashboard no solo muestra tus proyectos, te dice **qué
 > atender primero, quién debe hacerlo y por qué**.
+>
+> ℹ️ **Tip:** en casi cada título y tarjeta verás un icono **ⓘ**. Pasa el mouse por
+> encima para leer una explicación corta de esa sección o dato.
 
 ---
 
@@ -42,6 +45,25 @@ bloqueados"*) y una tarjeta roja **"Valor Atrapado"** con el dinero total deteni
 proyectos bloqueados.
 - **Qué hacer:** te da la magnitud del problema de un vistazo.
 
+## Sección: La jugada operativa (las 3 fichas)
+Aparece **justo después del Panorama**. Resume la estrategia del día en tres números:
+
+- **A escalar** (ficha azul): cuántos proyectos están bloqueados **por un tercero**
+  (cliente, accesos, credenciales). **No los resuelve el equipo técnico** — hay que
+  gestionarlos. **Haz clic en la ficha ("▼ Ver proyectos")** para desplegar la lista
+  exacta de esos proyectos, y clic en cualquiera para editarlo.
+- **A desarrollar** (ficha morada): cuántos proyectos están bloqueados por algo
+  **técnico que el equipo sí puede resolver**. También **es clickable** para ver cuáles.
+- **Cuello de botella** (ficha roja): la **persona más recargada**. Muestra cuántas
+  tareas tiene sobre el total del equipo (ej. *"28 de 82 tareas del equipo (34%)"*) —
+  de ahí sale el porcentaje. Haz clic para ir a la pantalla de Equipo. La sugerencia
+  es **reasignar** parte de su trabajo.
+
+> 📷 **[Insertar screenshot: las 3 fichas "A escalar / A desarrollar / Cuello de botella"]**
+
+- **Qué hacer:** esta es la decisión grande del día — separar lo que se gestiona
+  (escalar) de lo que se construye (desarrollar), y descargar a la persona saturada.
+
 ## Sección: Necesita atención hoy
 La lista de los **3 proyectos más prioritarios** según el sistema. Cada uno muestra:
 - Su **número de orden**, código y cliente.
@@ -55,29 +77,13 @@ La lista de los **3 proyectos más prioritarios** según el sistema. Cada uno mu
 - **Qué hacer:** empieza tu día por el #1. **Haz clic en cualquiera** para ver o
   editar sus detalles.
 
-## Sección: La jugada operativa (las 3 fichas)
-Resume la estrategia del día en tres números:
-
-- **A escalar** (ficha azul): cuántos proyectos están bloqueados **por un tercero**.
-  Estos **no los resuelve el equipo técnico** — hay que gestionarlos con el cliente o
-  con quien tenga el acceso pendiente.
-- **A desarrollar** (ficha morada): cuántos proyectos están bloqueados por algo
-  **técnico que el equipo sí puede resolver**.
-- **Cuello de botella** (ficha roja): la **persona más recargada** y qué porcentaje de
-  toda la carga tiene. Haz clic para ir a la pantalla de Equipo. La sugerencia es
-  **reasignar** parte de su trabajo.
-
-> 📷 **[Insertar screenshot: las 3 fichas "A escalar / A desarrollar / Cuello de botella"]**
-
-- **Qué hacer:** esta es la decisión grande del día — separar lo que se gestiona
-  (escalar) de lo que se construye (desarrollar), y descargar a la persona saturada.
-
 ## Sección: Calidad de Datos
 Muestra **proyectos con información incompleta o sospechosa**, que hay que limpiar:
 
 - **Sin siguiente paso:** proyectos donde nadie definió qué sigue.
-- **Sin fecha límite:** no tienen fecha de entrega → cronograma indefinido.
-- **Sin valor de negocio:** no se sabe cuánto valen → no se pueden priorizar por dinero.
+- **Sin Fecha Target:** no tienen fecha de entrega (fecha objetivo) → cronograma indefinido.
+- **Sin valor de negocio:** no se sabe cuánto valen. El sistema asume la **mediana del
+  portafolio** para no ocultarlos, pero conviene poner el valor real.
 - **Proyectos zombie:** figuran como "sanos" pero **no tienen tareas abiertas** y su
   fecha ya pasó → probablemente están terminados sin cerrar, o abandonados.
 
@@ -112,17 +118,23 @@ Un **resumen automático** de qué atender hoy, en lenguaje natural.
 - **Qué hacer:** léelo como tu "parte diario". Ideal para compartir en una reunión.
 
 ## Sección: Punto Crítico de Control (banner verde)
-Destaca **el proyecto #1** que requiere intervención inmediata, con sus datos
-separados: **Prioridad, Score, tipo de Bloqueo, Carga del dueño** y el **Próximo paso**.
+Destaca **el proyecto #1** que requiere intervención inmediata. Incluye:
+- Un **párrafo que explica cómo se calculó su Score** en palabras simples (ej. *"vale
+  $38k, está bloqueado y venció hace 93 días, por eso tiene el mayor valor en riesgo →
+  100/100"*). Sirve para entender el criterio sin ser técnico.
+- Sus datos separados en fichas: **Prioridad, Score, tipo de Bloqueo, Carga del dueño**
+  (cada una con su icono **ⓘ** que explica qué significa) y el **Próximo paso**.
 - **Qué hacer:** haz clic para editarlo. Si la carga del dueño dice **SATURADO** (en
   rojo), considera reasignar.
 
 > 📷 **[Insertar screenshot: banner "Punto Crítico de Control"]**
 
 ## Sección: Indicadores (3 tarjetas)
-- **Proyectos Críticos:** cuántos están bloqueados o vencidos.
+- **Proyectos Críticos:** cuántos están bloqueados **o** vencidos (proyectos distintos,
+  sin contar dos veces los que están en ambos casos).
 - **Tareas vencidas:** total de tareas pasadas de fecha.
-- **Proyectos sin fecha:** cuántos no tienen fecha límite.
+- **Proyectos sin Fecha de Inicio:** cuántos no tienen fecha de inicio (`start_date`) en
+  el dataset. Sin ella no se puede medir cuánto lleva abierto un proyecto.
 
 ## Sección: Ranking de Riesgo · Qué atender primero
 La **lista ordenada** de proyectos, del más al menos prioritario. Cada fila muestra el
@@ -225,6 +237,11 @@ resuelve.
 **¿Por qué un proyecto de mucho dinero aparece abajo en el ranking?**
 Porque el sistema prioriza por **riesgo**, no solo por valor. Un proyecto valioso pero
 sano y al día no es urgente; uno bloqueado y vencido sí.
+
+**¿Qué pasa si un proyecto no tiene valor de negocio?**
+El sistema le asume la **mediana del portafolio** (el valor típico de los demás) para
+que no desaparezca del ranking, y lo marca en "Calidad de Datos" como incompleto. Lo
+mejor es completar el valor real cuando se conozca.
 
 **¿Necesito una cuenta o contraseña?**
 No. El dashboard funciona directamente en el navegador.
