@@ -14,7 +14,6 @@ import {
   Ban,
   Search,
   ChevronRight,
-  ExternalLink,
   Target,
   ArrowUpRight,
   Settings2,
@@ -26,7 +25,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { INITIAL_DATA } from './data';
 import { Project, Task, TeamMember, ProjectHealth, TaskPriority } from './types';
-import { rankProjects, summarizePortfolio } from './engine';
+import { rankProjects, summarizePortfolio, normalizeToUSD } from './engine';
 import { generateBriefing, aiAvailable, AiSource, BriefingData } from './ai';
 import { Sparkles, Loader2 } from 'lucide-react';
 import ProjectModal from './ProjectModal';
@@ -91,44 +90,18 @@ export default function App() {
     const blockedCount = projects.filter(p => p.health === 'Bloqueado').length;
     const overdueProjectsCount = projects.filter(p => p.target_date && new Date(p.target_date) < now).length;
     const overdueCount = tasks.filter(t => t.is_overdue === 'Si').length;
-    const criticalNoStart = tasks.filter(t => t.priority === 'Critica' && t.status === 'Por hacer').length;
     const uniqueClients = new Set(projects.map(p => p.client_alias)).size;
     
-    // Normalization and Value calculation
-    const normalizeToUSD = (val: string | null, curr: string) => {
-      if (!val) return 0;
-      const num = parseInt(val);
-      if (curr === 'COP') return num / 4000;
-      return num;
-    };
-
-    const totalValueUSD = projects.reduce((acc, p) => acc + normalizeToUSD(p.business_value, p.currency), 0);
+    const totalValueUSD = projects.reduce((acc, p) => acc + (normalizeToUSD(p.business_value, p.currency) ?? 0), 0);
     const blockedValueUSD = projects
       .filter(p => p.health === 'Bloqueado')
-      .reduce((acc, p) => acc + normalizeToUSD(p.business_value, p.currency), 0);
+      .reduce((acc, p) => acc + (normalizeToUSD(p.business_value, p.currency) ?? 0), 0);
 
     // Data Anomalies
     const projectsWithoutDates = projects.filter(p => !p.target_date).length;
     const projectsWithoutValue = projects.filter(p => !p.business_value).length;
     const projectsWithoutNextStep = projects.filter(p => !p.next_step || !p.next_step.trim()).length;
     const zombieProjects = projects.filter(p => p.health === 'Sano' && p.open_tasks === '0' && p.status === 'Activo').length;
-
-    // Type Distribution
-    const typeDist = {
-      proyecto: projects.filter(p => p.engagement_type === 'Proyecto').length,
-      mantenimiento: projects.filter(p => p.engagement_type === 'Mantenimiento o recurrente').length,
-      diagnostico: projects.filter(p => p.engagement_type === 'Diagnostico').length,
-    };
-
-    const stageDist = {
-      ejecucion: projects.filter(p => p.stage === 'Ejecucion').length,
-      descubrimiento: projects.filter(p => p.stage === 'Descubrimiento').length,
-    };
-
-    const apiTypeDist = {
-      automatizacion: projects.filter(p => p.project_type_api === 'Automatizacion').length,
-      consultoria: projects.filter(p => p.project_type_api === 'Consultoria').length,
-    };
 
     // Motor de priorización (ver src/engine.ts): valor en riesgo + tipo de
     // bloqueo (externo/interno) + carga del dueño + acción recomendada.
@@ -159,9 +132,8 @@ export default function App() {
     return { 
       blockedCount, 
       overdueProjectsCount,
-      overdueCount, 
-      criticalNoStart, 
-      rankedProjects, 
+      overdueCount,
+      rankedProjects,
       uniqueClients, 
       totalValueUSD, 
       blockedValueUSD,
@@ -171,10 +143,7 @@ export default function App() {
       projectsWithoutDates,
       projectsWithoutValue,
       projectsWithoutNextStep,
-      zombieProjects,
-      typeDist,
-      stageDist,
-      apiTypeDist
+      zombieProjects
     };
   }, [projects, tasks, team]);
 
@@ -223,13 +192,7 @@ export default function App() {
   }, [projects, searchQuery, filterOwner, filterClient]);
 
   const filteredValue = useMemo(() => {
-    const normalizeToUSD = (val: string | null, curr: string) => {
-      if (!val) return 0;
-      const num = parseInt(val);
-      if (curr === 'COP') return num / 4000;
-      return num;
-    };
-    return filteredProjects.reduce((acc, p) => acc + normalizeToUSD(p.business_value, p.currency), 0);
+    return filteredProjects.reduce((acc, p) => acc + (normalizeToUSD(p.business_value, p.currency) ?? 0), 0);
   }, [filteredProjects]);
 
   const handleSaveProject = (data: Partial<Project>) => {
