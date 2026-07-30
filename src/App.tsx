@@ -110,6 +110,7 @@ export default function App() {
 
     // Data Anomalies
     const projectsWithoutDates = projects.filter(p => !p.target_date).length;
+    const projectsWithoutStartDate = projects.filter(p => !p.start_date).length;
     const projectsWithoutValue = projects.filter(p => !p.business_value).length;
     const projectsWithoutNextStep = projects.filter(p => !p.next_step || !p.next_step.trim()).length;
     const zombieProjects = projects.filter(p => p.health === 'Sano' && p.open_tasks === '0' && p.status === 'Activo').length;
@@ -154,6 +155,7 @@ export default function App() {
       topOwnerShare,
       totalOpenTasks,
       projectsWithoutDates,
+      projectsWithoutStartDate,
       projectsWithoutValue,
       projectsWithoutNextStep,
       zombieProjects
@@ -454,7 +456,7 @@ export default function App() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
                     { t: 'nextstep', label: 'Sin siguiente paso', val: stats.projectsWithoutNextStep },
-                    { t: 'dates', label: 'Sin fecha límite', val: stats.projectsWithoutDates },
+                    { t: 'dates', label: 'Sin Fecha Target', val: stats.projectsWithoutDates },
                     { t: 'value', label: 'Sin valor de negocio', val: stats.projectsWithoutValue },
                     { t: 'zombie', label: 'Proyectos zombie', val: stats.zombieProjects },
                   ].map(a => (
@@ -485,7 +487,7 @@ export default function App() {
                           <h3 className="text-xl font-extrabold flex items-center gap-2">
                             <AlertCircle className="w-5 h-5 text-warning" />
                             Detalle de Anomalía: {
-                              selectedAnomalyType === 'dates' ? 'Proyectos sin Fecha Límite' :
+                              selectedAnomalyType === 'dates' ? 'Proyectos sin Fecha Target' :
                               selectedAnomalyType === 'value' ? 'Proyectos sin Valor de Negocio' :
                               selectedAnomalyType === 'nextstep' ? 'Proyectos sin Siguiente Paso' :
                               'Proyectos Zombie Detectados'
@@ -713,19 +715,19 @@ export default function App() {
                     {/* Métricas */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                       <div className="bg-white/5 border border-white/10 rounded-lg p-3">
-                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest mb-1">Prioridad</div>
+                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest mb-1 inline-flex items-center gap-1">Prioridad <InfoTip text="Etiqueta calculada a partir del Score: 50 o más = Crítica, 20 o más = Alta, el resto = Baja. Resume qué tan urgente es el proyecto." className="text-mint/60" /></div>
                         <div className="font-bold text-brand">{top.assigned_priority}</div>
                       </div>
                       <div className="bg-white/5 border border-white/10 rounded-lg p-3">
-                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest mb-1">Score</div>
+                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest mb-1 inline-flex items-center gap-1">Score <InfoTip text="Valor en riesgo del proyecto (0 a 100). Combina cuánto dinero está en juego, qué tan bloqueado está y qué tan cerca o pasada está su fecha. 100 = el más urgente del portafolio." className="text-mint/60" /></div>
                         <div className="mono font-bold text-lg leading-none">{Math.round(top.priority_score)}<span className="text-mint/50 text-xs">/100</span></div>
                       </div>
                       <div className="bg-white/5 border border-white/10 rounded-lg p-3">
-                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest mb-1">Bloqueo</div>
+                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest mb-1 inline-flex items-center gap-1">Bloqueo <InfoTip text="Tipo de bloqueo: Externo (espera a un tercero como el cliente o un acceso → hay que escalar) o Interno (problema técnico que el equipo puede resolver → desarrollar)." className="text-mint/60" /></div>
                         <div className="font-bold text-brand">{top.blocker_type}</div>
                       </div>
                       <div className="bg-white/5 border border-white/10 rounded-lg p-3">
-                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest mb-1">Carga del dueño</div>
+                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest mb-1 inline-flex items-center gap-1">Carga del dueño <InfoTip text="Nivel de carga del responsable según sus tareas abiertas. SATURADO significa que tiene demasiadas; conviene reasignar parte de su trabajo." className="text-mint/60" /></div>
                         <div className={cn("font-bold", top.owner_load === 'SATURADO' ? "text-red-300" : "text-white")}>{top.owner_load}</div>
                       </div>
                     </div>
@@ -752,8 +754,8 @@ export default function App() {
                   <span className="text-sm text-muted">Tareas vencidas</span>
                 </div>
                 <div className="card flex flex-col gap-1 border-warning/20">
-                  <span className="mono text-3xl font-medium text-warning">{stats.projectsWithoutDates}</span>
-                  <span className="text-sm text-muted">Proyectos sin fecha</span>
+                  <span className="mono text-3xl font-medium text-warning">{stats.projectsWithoutStartDate}</span>
+                  <span className="text-sm text-muted inline-flex items-center gap-1.5">Proyectos sin Fecha de Inicio <InfoTip text="Proyectos que no tienen 'start_date' (fecha de inicio) en el dataset. Sin ella no se puede medir cuánto lleva abierto el proyecto." /></span>
                 </div>
               </div>
 

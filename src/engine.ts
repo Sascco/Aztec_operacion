@@ -45,7 +45,11 @@ export interface EngineConfig {
   copToUsd: number;
   /** Factor de riesgo por estado de salud del proyecto (0..1). */
   healthRisk: Record<ProjectHealth, number>;
-  /** Valor asumido (USD) cuando el proyecto no trae business_value. */
+  /**
+   * Valor (USD) de último recurso cuando el proyecto no trae business_value Y
+   * además no hay ningún proyecto con valor del cual calcular la mediana.
+   * En la práctica se usa la mediana del portafolio (ver `rankProjects`).
+   */
   defaultValueUSD: number;
   /** Umbrales de score (0..100) para etiquetar la prioridad. */
   criticalThreshold: number;
@@ -255,11 +259,25 @@ export function rankProjects(
     loadByOwner.set(m.member_alias, Number.isNaN(n) ? 0 : n);
   }
 
+  // Mediana del valor (USD) de los proyectos que SÍ tienen valor. Se usa como
+  // default para los que no lo traen, para que un dato faltante no los oculte
+  // del ranking — pero con un valor representativo del portafolio, no un número
+  // mágico. Si ningún proyecto tiene valor, cae al defaultValueUSD de la config.
+  const valuedUSD = projects
+    .map((p) => normalizeToUSD(p.business_value, p.currency, cfg))
+    .filter((v): v is number => v !== null)
+    .sort((a, b) => a - b);
+  const medianValueUSD = valuedUSD.length
+    ? valuedUSD.length % 2 === 1
+      ? valuedUSD[(valuedUSD.length - 1) / 2]
+      : (valuedUSD[valuedUSD.length / 2 - 1] + valuedUSD[valuedUSD.length / 2]) / 2
+    : cfg.defaultValueUSD;
+
   // 1) Calcular métricas y valor en riesgo por proyecto.
   const partial = projects.map((project) => {
     const valueRaw = normalizeToUSD(project.business_value, project.currency, cfg);
     const valueEstimated = valueRaw === null;
-    const valueUSD = valueRaw ?? cfg.defaultValueUSD;
+    const valueUSD = valueRaw ?? medianValueUSD;
 
     const dLate = daysLate(project.target_date, cfg.today);
     const risk = cfg.healthRisk[project.health] ?? 0.5;
