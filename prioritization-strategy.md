@@ -8,7 +8,7 @@
 | **Valor** | Normalizado en USD (COP ÷ 4,000). Si no hay valor, usar la **mediana del portafolio** (marcar como incompleto). |
 | **Riesgo** | **Bloqueado** → 1.0  ·  **En riesgo** → 0.6  ·  **Sano** → 0.15 |
 | **Urgencia** | **Vencido** → 1.0  ·  **≤30 días** → 0.7  ·  **>30 días** → 0.3  ·  **Sin fecha** → 0.7 |
-| **Etiquetas** | ≥ 50 → **Crítica**, ≥ 20 → **Alta**, < 20 → **Baja** (luego de escalar a 0‑100). |
+| **Resultado** | ≥ 50 → **Crítica**, ≥ 20 → **Alta**, < 20 → **Baja** (luego de escalar a 0‑100). |
 
 ## 2. Ruteo – Bloqueos externos vs internos
 
