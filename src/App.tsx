@@ -14,6 +14,8 @@ import {
   Ban,
   Search,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Target,
   ArrowUpRight,
   Settings2,
@@ -29,6 +31,7 @@ import { rankProjects, summarizePortfolio, normalizeToUSD } from './engine';
 import { generateBriefing, aiAvailable, AiSource, BriefingData } from './ai';
 import { Sparkles, Loader2 } from 'lucide-react';
 import ProjectModal from './ProjectModal';
+import InfoTip from './InfoTip';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -61,6 +64,7 @@ export default function App() {
   const [briefing, setBriefing] = useState<BriefingData | null>(null);
   const [briefingSource, setBriefingSource] = useState<AiSource | null>(null);
   const [briefingLoading, setBriefingLoading] = useState(false);
+  const [briefingOpen, setBriefingOpen] = useState(true);
 
   const handleGenerateBriefing = async () => {
     setBriefingLoading(true);
@@ -70,6 +74,7 @@ export default function App() {
       const result = await generateBriefing(summary, ranked);
       setBriefing(result.data);
       setBriefingSource(result.source);
+      setBriefingOpen(true);
     } finally {
       setBriefingLoading(false);
     }
@@ -236,13 +241,14 @@ export default function App() {
 
         <nav className="flex bg-surface border border-border p-1 rounded-full overflow-x-auto">
           {[
-            { id: 'home', label: 'Resumen', icon: Target },
-            { id: 'prioritization', label: 'Priorización', icon: LayoutDashboard },
-            { id: 'team', label: 'Equipo', icon: Users },
-            { id: 'portfolio', label: 'Portafolio', icon: Briefcase },
+            { id: 'home', label: 'Resumen', icon: Target, desc: 'Centro de operaciones: qué atender hoy, colas de escalar/desarrollar, cuello de botella y calidad de datos.' },
+            { id: 'prioritization', label: 'Priorización', icon: LayoutDashboard, desc: 'Ranking completo por valor en riesgo + briefing operativo generado con IA.' },
+            { id: 'team', label: 'Equipo', icon: Users, desc: 'Carga de trabajo por persona; identifica al cuello de botella.' },
+            { id: 'portfolio', label: 'Portafolio', icon: Briefcase, desc: 'Ver, buscar, crear y editar todos los proyectos.' },
           ].map((tab) => (
             <button
               key={tab.id}
+              title={tab.desc}
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
                 "flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap",
@@ -278,7 +284,7 @@ export default function App() {
                   </p>
                 </div>
                 <div className="card bg-critical/5 border-critical/20 p-6 flex flex-col gap-2">
-                  <span className="text-[10px] uppercase font-black text-critical tracking-widest">Valor Atrapado</span>
+                  <span className="text-[10px] uppercase font-black text-critical tracking-widest inline-flex items-center gap-1">Valor Atrapado <InfoTip text="Dinero total (USD) comprometido en proyectos bloqueados. Es lo que está en riesgo de perderse si no se destraban." /></span>
                   <span className="mono text-3xl font-bold text-critical">${Math.round(stats.blockedValueUSD / 1000)}k USD</span>
                   <span className="text-xs text-muted">En proyectos bloqueados</span>
                 </div>
@@ -287,7 +293,7 @@ export default function App() {
               {/* Necesita atención hoy — el foco operativo (motor de priorización) */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-black uppercase tracking-widest text-muted">Necesita atención hoy</h3>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-muted inline-flex items-center gap-1.5">Necesita atención hoy <InfoTip text="Los 3 proyectos más prioritarios según el motor. Empieza por el #1. Haz clic en cualquiera para ver o editar sus detalles." /></h3>
                   <button
                     onClick={() => setActiveTab('prioritization')}
                     className="text-xs font-bold text-forest hover:underline flex items-center gap-1"
@@ -339,7 +345,7 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="card p-5 border-blue-100 flex flex-col gap-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-black tracking-widest text-blue-700">A escalar</span>
+                    <span className="inline-flex items-center gap-1 text-[10px] uppercase font-black tracking-widest text-blue-700">A escalar <InfoTip text="Proyectos bloqueados por un tercero (cliente, accesos, credenciales). No se resuelven programando: hay que gestionarlos, no desarrollarlos." /></span>
                     <ArrowUpRight className="w-4 h-4 text-blue-700" />
                   </div>
                   <span className="mono text-3xl font-bold text-blue-700">{stats.summary.escalationQueue.length}</span>
@@ -347,7 +353,7 @@ export default function App() {
                 </div>
                 <div className="card p-5 border-purple-100 flex flex-col gap-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-black tracking-widest text-purple-700">A desarrollar</span>
+                    <span className="inline-flex items-center gap-1 text-[10px] uppercase font-black tracking-widest text-purple-700">A desarrollar <InfoTip text="Proyectos bloqueados por un problema técnico interno que el equipo sí puede resolver." /></span>
                     <Settings2 className="w-4 h-4 text-purple-700" />
                   </div>
                   <span className="mono text-3xl font-bold text-purple-700">{stats.summary.developmentQueue.length}</span>
@@ -358,7 +364,7 @@ export default function App() {
                   className="card p-5 border-critical/20 bg-critical/[0.03] flex flex-col gap-1 cursor-pointer hover:border-critical/40 transition-colors"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-black tracking-widest text-critical">Cuello de botella</span>
+                    <span className="inline-flex items-center gap-1 text-[10px] uppercase font-black tracking-widest text-critical">Cuello de botella <InfoTip text="La persona más recargada de trabajo. La operación no avanza más rápido que ella; conviene reasignar parte de su carga. Haz clic para ir a Equipo." /></span>
                     <Users className="w-4 h-4 text-critical" />
                   </div>
                   <span className="text-xl font-bold text-critical leading-tight">{stats.topOwner.alias}</span>
@@ -369,7 +375,7 @@ export default function App() {
               {/* Calidad de datos (anomalías operativas) */}
               <div className="card p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-black uppercase tracking-widest text-muted">Calidad de Datos · requieren limpieza</span>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-muted">Calidad de Datos · requieren limpieza <InfoTip text="Proyectos con información incompleta o sospechosa: sin fecha, sin valor, sin siguiente paso, o 'zombie' (sanos pero sin tareas y con fecha vencida). Haz clic en un número para ver cuáles." /></span>
                   <Ban className="w-4 h-4 text-warning" />
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -508,7 +514,7 @@ export default function App() {
                       <Sparkles className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-extrabold">Briefing Operativo</h3>
+                      <h3 className="font-extrabold inline-flex items-center gap-1.5">Briefing Operativo <InfoTip text="Resumen automático de qué atender hoy. Las cifras las calcula el motor; la IA solo redacta. Puedes minimizarlo o regenerarlo." /></h3>
                       <p className="text-[11px] text-muted">
                         {aiAvailable()
                           ? 'Generado con Gemini a partir del motor de priorización.'
@@ -516,16 +522,27 @@ export default function App() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={handleGenerateBriefing}
-                    disabled={briefingLoading}
-                    className="btn btn-primary gap-2 text-xs disabled:opacity-60"
-                  >
-                    {briefingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                    {briefingLoading ? 'Generando...' : 'Generar briefing'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {briefing && (
+                      <button
+                        onClick={() => setBriefingOpen(o => !o)}
+                        className="btn btn-secondary gap-2 text-xs"
+                      >
+                        {briefingOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        {briefingOpen ? 'Minimizar' : 'Mostrar'}
+                      </button>
+                    )}
+                    <button
+                      onClick={handleGenerateBriefing}
+                      disabled={briefingLoading}
+                      className="btn btn-primary gap-2 text-xs disabled:opacity-60"
+                    >
+                      {briefingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                      {briefingLoading ? 'Generando...' : briefing ? 'Regenerar' : 'Generar briefing'}
+                    </button>
+                  </div>
                 </div>
-                {briefing && (
+                {briefing && briefingOpen && (
                   <div className="space-y-5">
                     {/* Titular */}
                     <p className="text-base font-bold text-forest leading-snug">{briefing.headline}</p>
@@ -596,34 +613,61 @@ export default function App() {
                 )}
               </div>
 
-              {/* Alert Card */}
-              <div 
-                onClick={() => openEdit(stats.rankedProjects[0])}
-                className="bg-forest text-white rounded-2xl p-6 md:p-8 flex items-start gap-6 shadow-xl shadow-forest/10 cursor-pointer hover:bg-forest/95 transition-colors group"
-              >
-                <div className="flex-none w-12 h-12 rounded-full bg-brand flex items-center justify-center text-forest text-xl font-black">
-                  !
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-mint text-xs font-extrabold uppercase tracking-widest mb-1">Punto Crítico de Control</h2>
-                  <p className="text-lg md:text-xl leading-relaxed max-w-3xl">
-                    {(() => {
-                      const top = stats.rankedProjects[0];
-                      return (
-                        <>
-                          <span className="text-brand font-bold">{top.client_alias}</span> requiere intervención inmediata.
-                          Estrategia: <span className="text-brand font-bold">{top.assigned_priority}</span> (Score: {Math.round(top.priority_score)}) · Bloqueo <span className="text-brand font-bold">{top.blocker_type}</span> · Dueño con carga {top.owner_load}.
-                          Próximo paso: <span className="text-brand font-bold">{top.primary_action}</span>.
-                        </>
-                      );
-                    })()}
-                  </p>
-                </div>
-                <div className="hidden md:flex flex-none items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-xs font-bold">Editar Estado</span>
-                  <ChevronRight className="w-5 h-5" />
-                </div>
-              </div>
+              {/* Alert Card — Punto Crítico de Control */}
+              {(() => {
+                const top = stats.rankedProjects[0];
+                return (
+                  <div
+                    onClick={() => openEdit(top)}
+                    className="bg-forest text-white rounded-2xl p-6 md:p-8 shadow-xl shadow-forest/10 cursor-pointer hover:bg-forest/95 transition-colors group"
+                  >
+                    {/* Encabezado */}
+                    <div className="flex items-center justify-between gap-4 mb-5">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-none w-9 h-9 rounded-full bg-brand flex items-center justify-center text-forest text-lg font-black">!</div>
+                        <h2 className="text-mint text-xs font-extrabold uppercase tracking-widest inline-flex items-center gap-1.5">Punto Crítico de Control <InfoTip text="El proyecto #1 que requiere intervención inmediata, con sus señales clave y el próximo paso. Haz clic para editarlo." className="text-white/60" /></h2>
+                      </div>
+                      <div className="hidden md:flex items-center gap-1.5 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                        Editar estado <ChevronRight className="w-4 h-4" />
+                      </div>
+                    </div>
+
+                    {/* Titular */}
+                    <h3 className="text-2xl md:text-3xl font-extrabold mb-6 leading-tight">
+                      <span className="text-brand">{top.client_alias}</span> requiere intervención inmediata
+                    </h3>
+
+                    {/* Métricas */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest mb-1">Prioridad</div>
+                        <div className="font-bold text-brand">{top.assigned_priority}</div>
+                      </div>
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest mb-1">Score</div>
+                        <div className="mono font-bold text-lg leading-none">{Math.round(top.priority_score)}<span className="text-mint/50 text-xs">/100</span></div>
+                      </div>
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest mb-1">Bloqueo</div>
+                        <div className="font-bold text-brand">{top.blocker_type}</div>
+                      </div>
+                      <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest mb-1">Carga del dueño</div>
+                        <div className={cn("font-bold", top.owner_load === 'SATURADO' ? "text-red-300" : "text-white")}>{top.owner_load}</div>
+                      </div>
+                    </div>
+
+                    {/* Próximo paso */}
+                    <div className="flex items-center gap-3 bg-brand/10 border border-brand/20 rounded-lg p-3">
+                      <ArrowUpRight className="w-5 h-5 text-brand flex-none" />
+                      <div>
+                        <div className="text-mint/70 text-[10px] uppercase font-bold tracking-widest">Próximo paso</div>
+                        <div className="font-bold text-brand">{top.primary_action}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="card flex flex-col gap-1 border-critical/20">
@@ -642,7 +686,7 @@ export default function App() {
 
               {/* Priority Ranking */}
               <div>
-                <h2 className="text-xl font-extrabold mb-4">Ranking de Riesgo · Qué atender primero</h2>
+                <h2 className="text-xl font-extrabold mb-4 inline-flex items-center gap-2">Ranking de Riesgo · Qué atender primero <InfoTip text="Todos los proyectos ordenados por Score (valor en riesgo), del más al menos urgente. Cada fila muestra el bloqueo, la carga del dueño y el siguiente paso." /></h2>
                 <div className="space-y-2">
                   {stats.rankedProjects.slice(0, 8).map((project, idx) => {
                     return (
@@ -723,7 +767,7 @@ export default function App() {
 
               {/* Critical Actions Table */}
               <div>
-                <h2 className="text-xl font-extrabold mb-4">Acciones Críticas sin Iniciar</h2>
+                <h2 className="text-xl font-extrabold mb-4 inline-flex items-center gap-2">Acciones Críticas sin Iniciar <InfoTip text="Tareas de prioridad crítica que todavía no han empezado, con su fecha y responsable. Son focos rojos concretos." /></h2>
                 <div className="overflow-x-auto rounded-xl border border-border">
                   <table className="w-full text-left text-sm bg-surface">
                     <thead className="bg-bg text-muted uppercase text-[0.7rem] font-bold tracking-wider">
@@ -766,7 +810,7 @@ export default function App() {
               className="space-y-6"
             >
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-extrabold">Carga Operativa por Responsable</h2>
+                <h2 className="text-xl font-extrabold inline-flex items-center gap-2">Carga Operativa por Responsable <InfoTip text="Cuánto trabajo tiene cada persona: proyectos, tareas abiertas, tareas bloqueadas y cuántas son de alta prioridad. La persona resaltada es el cuello de botella." /></h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {team.map((member) => (
@@ -848,7 +892,7 @@ export default function App() {
             >
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div>
-                  <h2 className="text-xl font-extrabold">Portafolio de Operaciones</h2>
+                  <h2 className="text-xl font-extrabold inline-flex items-center gap-2">Portafolio de Operaciones <InfoTip text="Todos los proyectos. Busca por cliente o código, filtra por salud/responsable/cliente, y haz clic en una fila para editar. 'Nuevo Proyecto' crea uno; 'Restablecer' vuelve a los datos originales." /></h2>
                   <p className="text-xs text-muted mt-1">
                     Visualizando <span className="font-bold text-ink">{filteredProjects.length}</span> de {projects.length} proyectos · 
                     Valor filtrado: <span className="font-bold text-forest">${Math.round(filteredValue / 1000)}k USD</span>
