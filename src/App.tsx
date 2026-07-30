@@ -633,19 +633,6 @@ export default function App() {
                 )}
               </div>
 
-              {/* Smart Insight AI Card */}
-              <div className="card border-critical/20 bg-critical/[0.03] p-6 flex flex-col md:flex-row md:items-center gap-6">
-                <div className="w-12 h-12 rounded-full bg-critical flex items-center justify-center flex-none">
-                  <ArrowUpRight className="w-6 h-6 text-white" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="font-extrabold text-critical">Insight: El valor está atrapado en lo bloqueado</h3>
-                  <p className="text-sm text-ink/80 leading-relaxed">
-                    Priorizar por <strong>valor ponderado por riesgo</strong>. Desbloquear <span className="underline decoration-critical font-bold">Vector Partners (PRJ-22 + PRJ-08)</span> libera <span className="font-bold">$73,000 USD</span>, lo cual impacta más que cerrar 10 diagnósticos menores. El patrón indica que el problema raíz es <strong>dependencia de terceros</strong>.
-                  </p>
-                </div>
-              </div>
-
               {/* Alert Card */}
               <div 
                 onClick={() => openEdit(stats.rankedProjects[0])}
