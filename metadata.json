@@ -1,0 +1,6 @@
+{
+  "name": "Aztec Operation Dashboard",
+  "description": "Technical challenge for AI Solution Developer role at Aztec. A project management system focused on operational visibility and prioritization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #6edd62;
+  --color-brand-ink: #0d3326;
+  --color-bg: #f9f9f7;
+  --color-ink: #1d1d1d;
+  --color-forest: #0d3326;
+  --color-mint: #a9eba2;
+  --color-muted: #52514e;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+
+  --color-good: #0ca30c;
+  --color-warning: #fab219;
+  --color-critical: #d03b3b;
+
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+  }
+}
+
+@layer components {
+  .mono {
+    @apply font-mono text-[0.9em];
+  }
+
+  .status-pill {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-primary {
+    @apply bg-forest text-white hover:bg-forest/90;
+  }
+
+  .btn-secondary {
+    @apply bg-surface border border-border text-ink hover:bg-bg;
+  }
+
+  .card {
+    @apply bg-surface border border-border rounded-xl p-6 shadow-sm;
+  }
+}
