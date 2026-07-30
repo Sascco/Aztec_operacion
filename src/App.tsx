@@ -95,6 +95,11 @@ export default function App() {
     const now = new Date('2026-07-29');
     const blockedCount = projects.filter(p => p.health === 'Bloqueado').length;
     const overdueProjectsCount = projects.filter(p => p.target_date && new Date(p.target_date) < now).length;
+    // Proyectos "críticos" = distintos que están bloqueados O vencidos (unión, sin
+    // doble conteo: un proyecto puede estar bloqueado y vencido a la vez).
+    const criticalProjectsCount = projects.filter(
+      p => p.health === 'Bloqueado' || (p.target_date && new Date(p.target_date) < now)
+    ).length;
     const overdueCount = tasks.filter(t => t.is_overdue === 'Si').length;
     const uniqueClients = new Set(projects.map(p => p.client_alias)).size;
     
@@ -138,6 +143,7 @@ export default function App() {
     return { 
       blockedCount, 
       overdueProjectsCount,
+      criticalProjectsCount,
       overdueCount,
       rankedProjects,
       uniqueClients, 
@@ -738,7 +744,7 @@ export default function App() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="card flex flex-col gap-1 border-critical/20">
-                  <span className="mono text-3xl font-medium text-critical">{stats.blockedCount + stats.overdueProjectsCount}</span>
+                  <span className="mono text-3xl font-medium text-critical">{stats.criticalProjectsCount}</span>
                   <span className="text-sm text-muted">Proyectos Críticos</span>
                 </div>
                 <div className="card flex flex-col gap-1 border-critical/20">
