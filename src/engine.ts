@@ -10,7 +10,7 @@
  *  un ranking accionable respondiendo la pregunta operativa real:
  *      "¿Qué hará la persona correcta HOY para mover la mayor cantidad de valor?"
  *
- *  Decisiones de diseño (para defender en el video):
+ *  Decisiones de diseño:
  *
  *  1) NO priorizamos por valor bruto, sino por VALOR EN RIESGO.
  *     Un proyecto sano de $30k tiene poco valor en riesgo; uno bloqueado y
