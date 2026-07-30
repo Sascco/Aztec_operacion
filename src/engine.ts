@@ -333,6 +333,37 @@ export function rankProjects(
 }
 
 // ---------------------------------------------------------------------------
+// Explicación en lenguaje natural de cómo se llegó al Score de un proyecto.
+// Narra los tres factores (valor, riesgo, urgencia) para que un usuario no
+// técnico entienda el criterio.
+// ---------------------------------------------------------------------------
+export function explainScore(r: RankedProject): string {
+  const p = r.project;
+  const k = (n: number) => `$${Math.round(n / 1000)}k`;
+
+  const valTxt = r.valueEstimated
+    ? `no tiene valor registrado (se asumió la mediana del portafolio, ~${k(r.valueUSD)})`
+    : `vale ${k(r.valueUSD)}`;
+
+  const riskTxt =
+    p.health === 'Bloqueado' ? 'está bloqueado (riesgo máximo)' :
+    p.health === 'En riesgo' ? 'está en riesgo (riesgo medio)' :
+    'está sano (riesgo bajo)';
+
+  let urgTxt: string;
+  if (r.daysLate === null) urgTxt = 'no tiene fecha límite (se trata como urgencia media-alta)';
+  else if (r.daysLate > 0) urgTxt = `venció hace ${r.daysLate} días (urgencia máxima)`;
+  else if (r.daysLate >= -30) urgTxt = `vence en ${-r.daysLate} días (urgencia alta)`;
+  else urgTxt = `vence en ${-r.daysLate} días (todavía lejano)`;
+
+  const closing = r.score >= 99.5
+    ? 'tiene el mayor valor en riesgo de todo el portafolio, y por eso encabeza la lista con 100/100'
+    : `su valor en riesgo equivale al ${Math.round(r.score)}% del proyecto más urgente, y por eso su Score es ${Math.round(r.score)}/100`;
+
+  return `${p.client_alias} ${valTxt}, ${riskTxt} y ${urgTxt}. El Score multiplica esos tres factores — valor × riesgo × urgencia —, así que ${closing}.`;
+}
+
+// ---------------------------------------------------------------------------
 // Agregados de portafolio (para el "briefing" y las tarjetas de resumen).
 // ---------------------------------------------------------------------------
 export interface PortfolioSummary {

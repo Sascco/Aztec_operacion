@@ -27,7 +27,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { INITIAL_DATA } from './data';
 import { Project, Task, TeamMember, ProjectHealth, TaskPriority } from './types';
-import { rankProjects, summarizePortfolio, normalizeToUSD } from './engine';
+import { rankProjects, summarizePortfolio, normalizeToUSD, explainScore } from './engine';
 import { generateBriefing, aiAvailable, AiSource, BriefingData } from './ai';
 import { Sparkles, Loader2 } from 'lucide-react';
 import ProjectModal from './ProjectModal';
@@ -131,6 +131,7 @@ export default function App() {
       value_at_risk: r.valueAtRisk,
       has_next_step: r.hasNextStep,
       primary_action: r.primaryAction,
+      score_explanation: explainScore(r),
     }));
 
     // Carga del equipo (para el cuello de botella en el Home).
@@ -708,9 +709,14 @@ export default function App() {
                     </div>
 
                     {/* Titular */}
-                    <h3 className="text-2xl md:text-3xl font-extrabold mb-6 leading-tight">
+                    <h3 className="text-2xl md:text-3xl font-extrabold mb-3 leading-tight">
                       <span className="text-brand">{top.client_alias}</span> requiere intervención inmediata
                     </h3>
+
+                    {/* Explicación del Score en lenguaje natural */}
+                    <p className="text-sm text-mint/90 leading-relaxed mb-6 max-w-4xl">
+                      {top.score_explanation}
+                    </p>
 
                     {/* Métricas */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
